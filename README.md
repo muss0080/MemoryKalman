@@ -1,6 +1,6 @@
 # MemoryKalman
 
-Modified code from Kording, Tenembaum, and Shadmehr 2007 from 
+Modified code from Kording, Tenembaum, and Shadmehr 2007, originally from:
 http://www.nature.com/neuro/journal/v10/n6/suppinfo/nn1901_S1.html
 
 For use for COSMO 2016 tutorials.
