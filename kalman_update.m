@@ -22,6 +22,11 @@ function [xnew, Vnew, loglik, VVnew,xpred] = kalman_update(A, C, Q, R, y, x, V, 
 %  VVnew(:,:) = Cov[ X(t), X(t-1) | y(:, 1:t) ]
 %  loglik = log P(y(:,t) | y(:,1:t-1)) log-likelihood of innovatio
 %
+% P(x_t | x_t-1) = N(A*x_t-1, Q) - prediction
+% P(y_t | x_t )  = N(H x_t, R) - likelihood
+% P(x_t-1 | Y )  = N(x_t-1, V) - posterior
+% Predict then Update estimate.
+%
 % Written by Kevin Murphy, simplified and republished by Konrad Kording
 % 2006.
 % Ruined by Dominic Mussack 2016.
