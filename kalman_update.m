@@ -30,8 +30,6 @@ function [xnew, Vnew, loglik, VVnew,xpred] = kalman_update(A, C, Q, R, y, x, V, 
 % Written by Kevin Murphy, simplified and republished by Konrad Kording
 % 2006.
 % Ruined by Dominic Mussack 2016.
-% Go through, and have them 'fix' the kalman update so it works in a simple environment.
-% Test this in some scenarios.
 
 
 % set default params
@@ -52,33 +50,38 @@ end
 %  xpred(:) = E[X_t+1 | y(:, 1:t)]
 %  Vpred(:,:) = Cov[X_t+1 | y(:, 1:t)]
 
+%% Prediction step:
 if initial
-  if isempty(u)
-    xpred = x;
-  else
-    xpred = x + B*u;
-  end
+  % If this is the first step of a kalman filter,
+  % use the initial estimates of x and V.
+  xpred = x;
   Vpred = V;
 else
-  if isempty(u)
-    xpred = A*x;
-  else
-    xpred = A*x + B*u;
-  end
+  % Otherwise, use the state transition model to produce
+  % an estimate of xpred and Vpred
+  xpred = A*x;
   Vpred = A*V*A' + Q;
 end
 
+%% Update step
+% compute innovation (error) e:
 e = y - C*xpred; % error (innovation)
+% compute
 n = length(e);
 ss = length(A);
+% compute innovation covariance S
 S = C*Vpred*C' + R;
 Sinv = inv(S);
 ss = length(V);
+% Compute log likelihood
 loglik = gaussian_prob(e, zeros(1,length(e)), S, 1);
+% Compute the Kalman gain matrix K
 K = Vpred*C'*Sinv; % Kalman gain matrix
 
-% If there is no observation vector, set K = zeros(ss).
+% Update a posteriori state estimate xnew
 xnew = xpred + K*e;
+% Update a posteriori covariance estimate Vnew
 Vnew = (eye(ss) - K*C)*Vpred;
-%Vnew=diag(diag(Vnew)); % cheap hack to try it out
+
+% Update covariance change VVnew (see above).
 VVnew = (eye(ss) - K*C)*A*V;

@@ -2,17 +2,18 @@
 % Adapted from Kording, Tenembaum, and Shadmehr 2007.
 %
 
-%% Joint parameters - initialize transition and observation matrices.
+%% Joint parameters - initialize transition and observation matrices across all examples.
+% Construct these matrices
 states=30; %how many hidden states to use - we want 30 here
 taus=exp(-linspace(log(0.000003),log(0.5),states)); %calculate the timescales -
 A=diag(1-1./taus); % the transition matrix A - diagnal matrix using equation (1) (matrix M from appendix)
 C = ones(1,states); % the observation matrix C - matrix H from appendix.
-Q = diag(1./taus); % the state noise matrix Q - matrix Q from paper
+Q = diag(1./taus); % the state noise matrix Q - matrix Q from appendix
 Q=0.000001475*Q/sum(Q(:)); % this trick with normalizing makes it easier
                          % to experiment with other power laws for Q
                          % This way c=0.001 but its easy to play with the
                          % parameters
-R = (0.05).^2; % the observation noise
+R = (0.05).^2; % the observation noise R - sigma_w^2 from appendix
 initx = zeros(states,1); %system starts out in unperturbed state
 initV = diag(1e-6*ones(states,1)); %% rough estimate of variance
 
@@ -31,15 +32,24 @@ T = 40000;
 initV=Vfilt(:,:,end);
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Hopp and Fuchs
 % These reproduce figure 2b - simulates the data (sample_lds) and then perform inference on them.
-% Here the pertubation only is for the first set of trials.
+%{
+In these experiments, subjects had to make a 10 degree saccade (to a particular target),
+but then (after 200 ‘practice’ trials) the target moves during the saccade.
+Since saccades are too short to be able to use the feedback to adjust mid-saccade,
+the subject can only adjust the gain on a trail by trial basis.
+The subject eventually adapts by reducing the gain on the saccade (for an overshot).
+Then at trial 1400, the target stops moving, and the subject adapts back to the original location.
+%}
+
 T = 4200; % Timescale of experiment, ie number of trials.
 %% INSERT CODE
 % Simulate the unperturbed plan using sample_lds, and then purturb it:
 [x0,y] = sample_lds(A, C, Q, R, initx, T); % simulate an unperturbed plant
-y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y
-% Then run the filtration on it, producing xpred to be used below (graphing)
+y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y - from 1200 to 2600, produce a 30% disturbance
+% Then run the filtration on it, producing xpred to be used below (graphing).
 [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
 %% HERE
 
@@ -47,25 +57,28 @@ y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y
 figure(1);
 clf
 subplot(2,1,1)
-a=sum(xpred(:,1001:end)); % first 1000 are just to ensure initV doesnt matter much
-b=a-y(1001:end);
+a=sum(xpred(:,1001:end)); % first 1000 trials are just to ensure initV doesnt matter much
+b=a-y(1001:end); % Subjectract the y from the predicted values.
 b(201:1600)=b(201:1600)-0.3; %transform back because we want to plot the actual gain
-plot(1+b,'.')
-[paras]=fitExponential([1:1400],b(201:1600));
+plot(1+b,'.') % Plot the 'trials'
+[paras]=fitExponential([1:1400],b(201:1600)); % Fit an exponential to the trial data
 [paras2]=fitExponential([1:1600],b(1601:3200));
 hold on
-plot([201:1600],1+paras(1)+paras(2)*exp(paras(3)*[1:1400]),'r');
+plot([201:1600],1+paras(1)+paras(2)*exp(paras(3)*[1:1400]),'r'); % Plot the exponentials
 plot([1601:3200],1+paras2(1)+paras2(2)*exp(paras2(3)*[1:1600]),'r');b
 xlabel('time (saccades)')
 ylabel('relative size of saccade');
 title('Replication of standard target jump paradigm')
 subplot(2,1,2)
-imagesc(xpred(:,1001:end),[-1 1]*max(abs(xpred(:))));
+imagesc(xpred(:,1001:end),[-1 1]*max(abs(xpred(:)))); % Plot the values of the hidden states.
 colorbar
 xlabel('time (saccades)')
 ylabel('log timescale (2-33000)');
 title('Inferred disturbances for all timescales');
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojima faster second time
 % This replicates figure 3c.
 T=4200;
@@ -85,6 +98,8 @@ for i=1:5
     first(i)=parasF(2);
     second(i)=parasS(2);
 end
+
+% Produce figure 3c.
 figure(2);
 clf
 subplot(3,1,1);
@@ -113,10 +128,13 @@ xlabel('time (saccades)')
 ylabel('log timescale (2-33000)');
 title('inferred disturbances for all timescales');
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojimas change in the dark experiment
 % Figure 3g
 T=4200;
-%%
+%% INSERT CODE
 [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
 y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
 y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
@@ -143,6 +161,7 @@ xlabel('time (saccades)')
 ylabel('log timescale (2-33000)');
 title('inferred disturbances for all timescales');
 clear first second
+
 % assess speed of first vs second time
 for i=1:10
     [x0,y] = sample_lds(A, C, Q, R, initx, T);
@@ -165,6 +184,9 @@ xlabel('darkness, normal saccades')
 ylabel('speed of adaptation');
 title('adaptation speed after darkness versus normal saccades');
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojimas no-ISS experiment
 % Figure 3h
 figure(6)
@@ -193,10 +215,11 @@ ylabel('log timescale (2-33000)');
 title('inferred disturbances for all timescales');
 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Robinson
 % Figure 2c
 figure(4)
-
 T = 40*3000;
 [x0,y0] = sample_lds(A, C, Q, R, initx, T);
 y=y0;
@@ -252,63 +275,4 @@ title('quantifying the speed advantage on d2 versus d1');
 
 
 
-
-%% Analyze the effects of the choice of the transition matrix
-figure(5)
-
-%%%% Simulate a motor plant - always the same for all settings %%%%
-states=30; %how many hidden states to use
-taus=exp(-linspace(log(0.000003),log(0.5),states)); %calculate the timescales
-A=diag(1-1./taus); % the transition matrix
-C = ones(1,states); % the observation matrix
-Q = diag(1./(taus)); % the state noise matrix
-Q=0.000001475*Q/sum(Q(:)); % this trick with normalizing makes it easier to vary parameters;
-R = (0.05).^2; % the observation noise
-initx = zeros(states,1); %system starts out in unperturbed state
-initV = diag(1e-6*ones(states,1)); %% rough estimate of variance
-T = 4200;
-[x0,yA] = sample_lds(A, C, Q, R, initx, T);
-count=0;
-
-%%%%%%% play with the settings %%%%%%%%%%%%%%
-alphas=[0 0.5 1 1.5 2];
-sizes=[0.01 0.033333 0.1 0.3333 1 3 10 30 100 300];
-for i=1:length(alphas)
-    for j=1:length(sizes)
-        count=count+1;
-        subplot(length(alphas),length(sizes),count)
-        states=30; %how many hidden states to use
-        taus=exp(-linspace(log(0.00003),log(0.5),states)); %calculate the timescales
-        A=diag(1-1./taus); % the transition matrix
-        C = ones(1,states); % the observation matrix
-        Q = diag(1./(taus.^alphas(i))); % the state noise matrix
-        Q=sizes(j)*0.000001475*Q/sum(Q(:)); % this trick with normalizing makes it easier - makes c=0.001;
-        % to experiment with other power laws for Q
-        R = (0.05).^2; % the observation noise
-        initx = zeros(states,1); %system starts out in unperturbed state
-        initV = diag(1e-6*ones(states,1)); %% rough estimate of variance
-        T = 9000;
-        [x0,y0] = sample_lds(A, C, Q, R, initx, T);
-        [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y0, A, C, Q, R, initx, initV);
-        initV=Vfilt(:,:,end);
-
-        %%% See how the various versions would do with Hopp and Fuchs - note how the shapes change
-        %%% with changing parameters
-        T = 4200;
-        y=yA;
-        y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y
-        [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
-         a=sum(xpred(:,1001:end)); % first 1000 are just to ensure initV doesnt matter much
-        b=a-y(1001:end);
-        b(201:1600)=b(201:1600)-0.3; %transform back because we want to plot the actual gain
-        plot(1+(sum(xpred(:,1001:end))),'b')
-        [paras]=fitExponential([1:1400],b(201:1600));
-        [paras2]=fitExponential([1:1600],b(1601:3200));
-        hold on
-        plot([201:1600],1+paras(1)+paras(2)*exp(paras(3)*[1:1400]),'r');
-        plot([1601:3200],1+paras2(1)+paras2(2)*exp(paras2(3)*[1:1600]),'r');
-        axis([-Inf Inf 0.5 1.5]);
-
-        xlabel([int2str(i) ' ' int2str(j)]);
-        end
-end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -57,6 +57,7 @@ for t=1:T
     % Below: a single kalman_update call, using the A, C, Q, and R matrices, given one timestep of evidence y.
     % Here is included the ['initial', initial] argument, along with previous x and V estimates.
     % Remember; we want the updated estimate of state x_t, V_t, and a prediction for x_t+1
+    % R = R + isObserved, to produce the error that comes from NOT having observations.
     [x(:,t), V, LL, VV, xpred(:,t)] = ...
         kalman_update(A(:,:), C(:,:), Q(:,:), R(:,:)+isObserved(t), y(:,t), prevx, prevV, 'initial', initial);
 
