@@ -49,7 +49,7 @@ These files have been run on MATLAB 2013a, but should work with any version.
 Apologies about everything ever - some very smart people think that changing the notation for terms is unimportant, but for those learning it can be a huge wall. For my own sanity, I've made the (hopefully correct) table below to translate the important matrices from the Kalman update [wikipedia page](https://en.wikipedia.org/wiki/Kalman_filter), the paper Kording, Tenembaum, and Shadmehr 2007, and their accompanying code.
 
 Term | Wiki | Paper | Code
---| -- | -- | --
+--- | --- | --- | ---
 State transition model | F | M | A
 State transition variance | Q | Q | Q
 Observation model | H | H | C
@@ -58,4 +58,5 @@ Observation uncertainty | P | V | V
 In a Bayesian sense (the way I think), these relate to the following probabilities:
 
 Prediction: P(x_t | x_t-1) = N(A x_t-1 , Q)
+
 Estimation: P(y_t |
