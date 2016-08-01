@@ -45,22 +45,24 @@ Then at trial 1400, the target stops moving, and the subject adapts back to the 
 %}
 
 T = 4200; % Timescale of experiment, ie number of trials.
-%% INSERT CODE
+% INSERT CODE
 % Simulate the unperturbed plan using sample_lds, and then purturb it:
 [x0,y] = sample_lds(A, C, Q, R, initx, T); % simulate an unperturbed plant
 y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y - from 1200 to 2600, produce a 30% disturbance
 % Then run the filtration on it, producing xpred to be used below (graphing).
 [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
-%% HERE
-
-%% Produce figure 2b, given the filters outputs.
-figure(1);
-clf
-subplot(2,1,1)
-% We weigh all the hidden states equally, so just sum accross all of them to get the resulting
+% HERE
 a=sum(xpred(:,1001:end)); % first 1000 trials are just to ensure initV doesnt matter much
+% We weigh all the hidden states equally, so just sum across all of them
+% to get the resulting gain, and then subtract the observations and reverse
+% the external perturbation.
 b=a-y(1001:end); % Subjectract the gain y from the predicted values x.
 b(201:1600)=b(201:1600)-0.3; %transform back because we want to plot the actual gain
+
+
+%% Produce figure 2b, given xpred and y.
+figure(1);
+subplot(2,1,1)
 plot(1+b,'.') % Plot the 'trials'
 [paras]=fitExponential([1:1400],b(201:1600)); % Fit an exponential to the trial data
 [paras2]=fitExponential([1:1600],b(1601:3200));
@@ -82,9 +84,19 @@ title('Inferred disturbances for all timescales');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojima faster second time
 % This replicates figure 3c.
+%{
+Double adaptation experiments. Following an initial set of trials, 
+there is positive perturbation of the target by 35% for 800 trials, 
+followed by a 35% negative perturbation of the target (from the initial position). 
+This continues until the gain is back to neutral (i.e. the subject correctly saccades to the initial position),
+at which time the target is (again) positively perturbed by 35%.
+This second positive perturbation is followed by a quicker adaptation towards the new target position,
+indicating that some memory remains of the previous positive perturbation.
+%}
+
 T=4200;
 for i=1:5
-    %% INSERT CODE
+    % INSERT CODE
     % First, simulate the full trial sets:
     [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
     % Then produce positive perturbation from 1001 till 1800, and then negative perturbation till the end.
@@ -92,7 +104,7 @@ for i=1:5
     y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
     % Then run the Kalman filter on this perturbation.
     [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
-    %% HERE
+    % HERE
     % Now, figure out when the gain goes back to normal.
     nG=find(sum(xpred)<sum(xpred(:,1001)));
     bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
@@ -107,15 +119,9 @@ for i=1:5
     second(i)=parasS(2);
 end
 
-% Produces figure 3c - need xpred = state predicted and y = observation
+%% Produces figure 3c - need xpred = state predicted and y = observation
 figure(2);
-clf
-subplot(3,1,1);
-plot([ones(size(first));2*ones(size(first))],[first;second],'k.-');
-xlabel('first time, second time')
-ylabel('speed of adaptation');
-title('adaptation speed: first time versus second time w reversal');
-subplot(3,1,2);
+subplot(2,1,1);
 a=sum(xpred(:,801:end));
 b=a-y(801:end);
 b(201:1000)=b(201:1000)+0.35; % remove perturbation to report standard gains
@@ -130,7 +136,7 @@ plot([bord-800:bord+599-800],1+paras2(1)+paras2(2)*[1:600],'r');
 xlabel('time (saccades)')
 ylabel('relative size of saccade');
 title('adaptation, up down and up again');
-subplot(3,1,3)
+subplot(2,1,2)
 imagesc(xpred(:,1001:end),[-1 1]*max(abs(xpred(:))));
 xlabel('time (saccades)')
 ylabel('log timescale (2-33000)');
@@ -141,8 +147,15 @@ title('inferred disturbances for all timescales');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojimas change in the dark experiment
 % Figure 3g
+%{
+Here we have a period with no information - after the gain resets following a reversal, 
+the subject is blinded (so no information) and then a positive perturbation is produced. 
+Note that the subject ?lost? some of the recent negative adaptation and showed spontaneous recovery 
+(in the original graph).
+
+%}
 T=4200;
-%% INSERT CODE
+% INSERT CODE
 [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
 y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
 y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
@@ -159,6 +172,8 @@ b=y-a;
 b(1001:1800)=b(1001:1800)-0.35;
 b(1801:bord)=b(1801:bord)+0.35;
 b(bord+1:end)=b(bord+1:end)-0.35;
+
+%% produces figure 3g
 figure(3)
 clf
 subplot(2,1,1)
@@ -176,7 +191,13 @@ clear first second
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojimas no-ISS experiment  - no perturbation after darkness
 % Figure 3h
-figure(6)
+%{
+This experiment is the same as the previous, 
+but instead of a positive perturbation after the dark period, 
+there is no perturbation (so the perturbation is set back to 0). 
+Note here that there is no spontaneous recovery.
+%}
+
 T=4200;
 [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
 y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
@@ -187,11 +208,13 @@ bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal (gain
 y(bord:end)=y(bord:end)+0.35; %switch perturbation to 0.
 [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,500),ones(1,10000)]);
 a=sum(xpred); % Average across all hidden states to find the adaptation gain
-b=y-a; % Subtract the resulting averaged gain from the
+b=y-a; % Subtract the resulting averaged gain again from the evidence, and revert the perturbations back to 0.
 b(1001:1800)=b(1001:1800)-0.35;
 b(1801:bord)=b(1801:bord)+0.35;
 
-% Plot figure 3h
+
+%% Plot figure 3h
+figure(6)
 subplot(2,1,1)
 plot(1-b(1,1001:end).*[ones(1,bord-1-1000),zeros(1,501),ones(1,4200-bord-500)],'.')
 xlabel('time (saccades)')
@@ -207,19 +230,29 @@ title('inferred disturbances for all timescales');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Robinson - memory over multiple days with darkness.
 % Figure 2c
-figure(4)
-T = 40*3000;
-[x0,y0] = sample_lds(A, C, Q, R, initx, T);
-y(1:floor(T/2))=y0(1:floor(T/2))-0.5;
-isObserved=ones(size(y));
-for i=0:40
+%{
+In these experiments, subjects went through the adaptation training (with an offset of 50%) over multiple days,
+each day having 1500 trials and being blindfolded for the rest of the time. 
+Note that on each day subject?s rates of learning is faster, till finally they almost achieve instant adaptation.
+%}
+T = 5*3000; % Produce adaptations for 5 days (1500 trials each).
+[x0,y0] = sample_lds(A, C, Q, R, initx, T); % simulate the plant
+y=y0-0.5; % perturb the plant by 50%.
+isObserved=ones(size(y)); % Set the observability (isObserved) to be 1 for the 'day' and 0 for 'night'. Set each day/night to be 1500 timesteps each. 
+for i=0:5
     isObserved((i*3000)+1:(i*3000)+1500)=0;
 end
+% Run the kalman filter once more!
 [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',isObserved);
 
+% Now subtract the observations from the summed predictions, accounting for
+% the perturbations. Let this be variable r.
 r=sum(xpred)-y;
-r(1:end/2)=r(1:end/2)-0.5;
-for i=0:39
+r=r-0.5;
+
+%% produce figure 2c - fitting exponentials to each day.
+figure(4)
+for i=0:4
     subplot(2,1,1)
     hold on
     plot(i*1500+1500+(1:1500),1+r(i*3000+1500+(1:1500)),'ko');
