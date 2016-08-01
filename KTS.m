@@ -107,7 +107,7 @@ for i=1:5
     second(i)=parasS(2);
 end
 
-% Produce figure 3c.
+% Produces figure 3c - need xpred = state predicted and y = observation
 figure(2);
 clf
 subplot(3,1,1);
@@ -122,7 +122,7 @@ b(201:1000)=b(201:1000)+0.35; % remove perturbation to report standard gains
 b(1001:bord-800)=b(1001:bord-800)-0.35;
 b(bord-800:end)=b(bord-800:end)+0.35;
 plot(1+b,'.');
-[paras]=fitLinear([1:200],b(201:400));
+[paras]=fitLinear([1:200],b(201:400)); % Fit linear functions to the resulting data.
 [paras2]=fitLinear([1:200],b(bord-800:bord-800+199));
 hold on
 plot([201:800],1+paras(1)+paras(2)*[1:600],'r');
@@ -151,8 +151,8 @@ nG=find(sum(xpred)<sum(xpred(:,1001)));
 bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
 y(bord:end)=y(bord:end)+0.7; %switch back to positive
 % Now run the kalman filter, but set the isObserved to zero for the dark periods.
-% The monkey has no observations for this time period of after the gain comes back to 0 till
-%
+% The monkey has no observations for this time period, after the gain comes back to 0 for 500 time points.
+% We use a time of 500 to represent 'darkness'
 [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,500),ones(1,10000)]);
 a=sum(xpred);
 b=y-a;
@@ -161,41 +161,17 @@ b(1801:bord)=b(1801:bord)+0.35;
 b(bord+1:end)=b(bord+1:end)-0.35;
 figure(3)
 clf
-subplot(3,1,1)
+subplot(2,1,1)
 plot(-b(1,1001:end).*[ones(1,bord-1-1000),zeros(1,501),ones(1,4200-bord-500)],'.')
 xlabel('time (saccades)')
 ylabel('relative size of saccade');
 title('adaptation, up down, darkness, and up again');
-subplot(3,1,2)
+subplot(2,1,2)
 imagesc(xpred(:,1001:end),[-1 1]*max(abs(xpred(:))));
 xlabel('time (saccades)')
 ylabel('log timescale (2-33000)');
 title('inferred disturbances for all timescales');
 clear first second
-
-% assess speed of first vs second time
-for i=1:10
-    [x0,y] = sample_lds(A, C, Q, R, initx, T);
-    y(1001:1800)=y(1001:1800)+0.35;
-    y(1801:end)=y(1801:end)-0.35;
-    [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
-    nG=find(sum(xfilt)<sum(xfilt(:,1001)));
-    bord=min(nG(find(nG>1700)))+1;
-    y(bord+1:end)=y(bord+1:end)+0.35;
-    y(bord+2000:end)=y(bord+2000:end)+0.35;
-    %compare darkness with fully observed
-    [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,2000),ones(1,10000)]);
-    [xfilt, Vfilt, VVfilt, loglik,xpred2] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),ones(1,2000),ones(1,10000)]);
-    darkness(i,:)=fitLinear((1:100)/100,sum(xpred(:,bord+2001:bord+2100)));
-    fullyObserved(i,:)=fitLinear((1:100)/100,sum(xpred2(:,bord+2001:bord+2100)));
-end
-subplot(3,1,3)
-errorbar(0.01*[mean(darkness(:,2)) mean(fullyObserved(:,2))],0.01*[std(darkness(:,2)) std(fullyObserved(:,2))]);
-xlabel('darkness, normal saccades')
-ylabel('speed of adaptation');
-title('adaptation speed after darkness versus normal saccades');
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Replicate Kojimas no-ISS experiment  - no perturbation after darkness
@@ -205,15 +181,17 @@ T=4200;
 [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
 y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
 y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
-[xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
+[xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV); % Run kalman filter
 nG=find(sum(xpred)<sum(xpred(:,1001)));
-bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
-y(bord:end)=y(bord:end)+0.35; %switch to zero
+bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal (gain = 1)
+y(bord:end)=y(bord:end)+0.35; %switch perturbation to 0.
 [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,500),ones(1,10000)]);
-a=sum(xpred);
-b=y-a;
+a=sum(xpred); % Average across all hidden states to find the adaptation gain
+b=y-a; % Subtract the resulting averaged gain from the
 b(1001:1800)=b(1001:1800)-0.35;
 b(1801:bord)=b(1801:bord)+0.35;
+
+% Plot figure 3h
 subplot(2,1,1)
 plot(1-b(1,1001:end).*[ones(1,bord-1-1000),zeros(1,501),ones(1,4200-bord-500)],'.')
 xlabel('time (saccades)')
@@ -224,7 +202,6 @@ imagesc(xpred(:,1001:end),[-1 1]*max(abs(xpred(:))));
 xlabel('time (saccades)')
 ylabel('log timescale (2-33000)');
 title('inferred disturbances for all timescales');
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -55,8 +55,10 @@ State transition variance | Q | Q | Q
 Observation model | H | H | C
 Observation uncertainty | P | V | V
 
-In a Bayesian sense (the way I think), these relate to the following probabilities:
+In a probabilistic sense (the natural way I think), these relate to the following probabilities:
 
-Prediction: P(x_t | x_t-1) = N(A x_t-1 , Q)
+Prediction: P(x_t | x_t-1) = N(A x_t-1, Q)
 
-Estimation: P(y_t |
+Likelihood: P(y_t | x_t )  = N(H x_t, R)
+
+Posterior: P(x_t-1 | Y )  = N(x_t-1, V)
