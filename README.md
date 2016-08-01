@@ -21,7 +21,7 @@ If you have finished all that, try writing up new code to replicate the contrast
 
 In the kalman_update file I have removed the control component, u. This is important for the full Kalman Filter, but not for our use so can be ignored. There are some other bits that are stripped down or hopefully simplified.
 
-Since this is modified from the original code linked above, you could download the original and look at the solutions. 
+Since this is modified from the original code linked above, you could download the original and look at the solutions.
 
 ### Original script descriptions
 
