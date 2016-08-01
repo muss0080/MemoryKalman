@@ -57,8 +57,9 @@ y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y - from 1200 to 2600,
 figure(1);
 clf
 subplot(2,1,1)
+% We weigh all the hidden states equally, so just sum accross all of them to get the resulting
 a=sum(xpred(:,1001:end)); % first 1000 trials are just to ensure initV doesnt matter much
-b=a-y(1001:end); % Subjectract the y from the predicted values.
+b=a-y(1001:end); % Subjectract the gain y from the predicted values x.
 b(201:1600)=b(201:1600)-0.3; %transform back because we want to plot the actual gain
 plot(1+b,'.') % Plot the 'trials'
 [paras]=fitExponential([1:1400],b(201:1600)); % Fit an exponential to the trial data
@@ -83,16 +84,23 @@ title('Inferred disturbances for all timescales');
 % This replicates figure 3c.
 T=4200;
 for i=1:5
-    %% ISERT CODE
+    %% INSERT CODE
+    % First, simulate the full trial sets:
     [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
+    % Then produce positive perturbation from 1001 till 1800, and then negative perturbation till the end.
     y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
     y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
+    % Then run the Kalman filter on this perturbation.
     [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
     %% HERE
+    % Now, figure out when the gain goes back to normal.
     nG=find(sum(xpred)<sum(xpred(:,1001)));
     bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
+    % And then produce the positive perturbation again starting at that point - remember the negative perturbation.
     y(bord:end)=y(bord:end)+0.7; %switch back to positive
+    % Now run the kalman filter again...
     [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
+    % And produce a linear fit on the first and second positive perturbation.
     [parasF]=fitLinear([1:200],sum(xpred(:,1001:1200))-y(1001:1200));
     [parasS]=fitLinear([1:200],sum(xpred(:,bord:bord+199))-y(bord:bord+199));
     first(i)=parasF(2);
@@ -142,6 +150,9 @@ y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
 nG=find(sum(xpred)<sum(xpred(:,1001)));
 bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
 y(bord:end)=y(bord:end)+0.7; %switch back to positive
+% Now run the kalman filter, but set the isObserved to zero for the dark periods.
+% The monkey has no observations for this time period of after the gain comes back to 0 till
+%
 [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,500),ones(1,10000)]);
 a=sum(xpred);
 b=y-a;
@@ -187,7 +198,7 @@ title('adaptation speed after darkness versus normal saccades');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Replicate Kojimas no-ISS experiment
+%% Replicate Kojimas no-ISS experiment  - no perturbation after darkness
 % Figure 3h
 figure(6)
 T=4200;
@@ -217,12 +228,11 @@ title('inferred disturbances for all timescales');
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Robinson
+%% Robinson - memory over multiple days with darkness.
 % Figure 2c
 figure(4)
 T = 40*3000;
 [x0,y0] = sample_lds(A, C, Q, R, initx, T);
-y=y0;
 y(1:floor(T/2))=y0(1:floor(T/2))-0.5;
 isObserved=ones(size(y));
 for i=0:40
@@ -233,7 +243,7 @@ end
 r=sum(xpred)-y;
 r(1:end/2)=r(1:end/2)-0.5;
 for i=0:39
-    subplot(3,1,1)
+    subplot(2,1,1)
     hold on
     plot(i*1500+1500+(1:1500),1+r(i*3000+1500+(1:1500)),'ko');
     [x4(i+1,:)]=fitExponential([1:1500]/1000,1+r(i*3000+1500+(1:1500)));
@@ -243,36 +253,12 @@ xlabel('time (saccades during the experiment)')
 ylabel('relative size of saccade');
 title('adaptation interleaved with nights in the dark');
 
-subplot(3,1,2)
+subplot(2,1,2)
 hold on
 imagesc(xpred,[-1 1]*max(abs(xpred(:))));
 xlabel('time (saccades, including those simulated in the dark)')
 ylabel('log timescale (2-33000)');
 title('inferred disturbances for all timescales');
-
-
-%%%% statistics
-for run=1:10
-    T=10500;
-    isObserved(1:7500)=1;
-    isObserved(7501:9000)=0;
-    isObserved(9001:10050)=1;
-    [x0,y0] = sample_lds(A, C, Q, R, initx, T);
-    y=y0;
-    y(6001:end)=y0(6001:end)-0.5;
-    [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',isObserved);
-    r=sum(xpred)-y;
-    for i=1:2
-        [robStats(i,run,:)]=fitExponential([1:1500]/1500,r((i+1)*3000+(1:1500)));
-    end
-end
-exponents=robStats(:,:,3)/1500;
-subplot(3,1,3)
-errorbar(-nanmean(1./(exponents')),std(1./(exponents')));
-xlabel('first day, second day')
-ylabel('speed of adaptation');
-title('quantifying the speed advantage on d2 versus d1');
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -9,7 +9,7 @@ Created for COSMO 2016 tutorials.
 The code here has been edited from the original with some added comments and some key sections removed.
 First read through the original paper (Kording, Tenembaum, and Shadmehr 2007), to get an understanding of what you're doing. Then download the code and try to replicate the eye movement simulation figures.
 
-When producing motor commands, errors occur due to a wide array of disturbances such as fatigue, damage, or development. All of these disturbances occur at different timescales, and require different adaptations. Problems at a shorter timescale should be forgotten, while longer ones should be kept around. 
+When producing motor commands, errors occur due to a wide array of disturbances such as fatigue, damage, or development. All of these disturbances occur at different timescales, and require different adaptations. Problems at a shorter timescale should be forgotten, while longer ones should be kept around.
 
 First fix the kalman_update.m with the kalman update equations. Work through the simple example from the test_kalman.m file with your now working kalman filter.
 
@@ -21,7 +21,7 @@ If you have finished all that, try writing up new code to replicate the contrast
 
 In the kalman_update file I have removed the control component, u. This is important for the full Kalman Filter, but not for our use so can be ignored. There are some other bits that are stripped down or hopefully simplified.
 
-Since this is modified from the original code linked above,
+Since this is modified from the original code linked above, you could download the original and look at the solutions. 
 
 ### Original script descriptions
 
