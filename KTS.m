@@ -18,8 +18,8 @@ initx = zeros(states,1); %system starts out in unperturbed state
 initV = diag(1e-6*ones(states,1)); %% rough estimate of variance
 
 % Note that there are 30 memory states (30 'disturbances'), which will produce the error. The gain is implicit - error is always
-% assumed to be around 0 (errors are addative). Not solving a multiplicative gain, but an addative offset.
-%
+% assumed to be around 0 (i.e. errors are addative). So we're not solving a multiplicative gain, but an addative offset.
+
 % Trying to find the states that when summed equal the error, so thats why C is ones
 % ypred = C*xpred, which can be compared to any y
 
@@ -85,9 +85,9 @@ title('Inferred disturbances for all timescales');
 %% Replicate Kojima faster second time
 % This replicates figure 3c.
 %{
-Double adaptation experiments. Following an initial set of trials, 
-there is positive perturbation of the target by 35% for 800 trials, 
-followed by a 35% negative perturbation of the target (from the initial position). 
+Double adaptation experiments. Following an initial set of trials,
+there is positive perturbation of the target by 35% for 800 trials,
+followed by a 35% negative perturbation of the target (from the initial position).
 This continues until the gain is back to neutral (i.e. the subject correctly saccades to the initial position),
 at which time the target is (again) positively perturbed by 35%.
 This second positive perturbation is followed by a quicker adaptation towards the new target position,
@@ -148,9 +148,9 @@ title('inferred disturbances for all timescales');
 %% Replicate Kojimas change in the dark experiment
 % Figure 3g
 %{
-Here we have a period with no information - after the gain resets following a reversal, 
-the subject is blinded (so no information) and then a positive perturbation is produced. 
-Note that the subject ?lost? some of the recent negative adaptation and showed spontaneous recovery 
+Here we have a period with no information - after the gain resets following a reversal,
+the subject is blinded (so no information) and then a positive perturbation is produced.
+Note that the subject ?lost? some of the recent negative adaptation and showed spontaneous recovery
 (in the original graph).
 
 %}
@@ -192,9 +192,9 @@ clear first second
 %% Replicate Kojimas no-ISS experiment  - no perturbation after darkness
 % Figure 3h
 %{
-This experiment is the same as the previous, 
-but instead of a positive perturbation after the dark period, 
-there is no perturbation (so the perturbation is set back to 0). 
+This experiment is the same as the previous,
+but instead of a positive perturbation after the dark period,
+there is no perturbation (so the perturbation is set back to 0).
 Note here that there is no spontaneous recovery.
 %}
 
@@ -232,13 +232,13 @@ title('inferred disturbances for all timescales');
 % Figure 2c
 %{
 In these experiments, subjects went through the adaptation training (with an offset of 50%) over multiple days,
-each day having 1500 trials and being blindfolded for the rest of the time. 
+each day having 1500 trials and being blindfolded for the rest of the time.
 Note that on each day subject?s rates of learning is faster, till finally they almost achieve instant adaptation.
 %}
 T = 5*3000; % Produce adaptations for 5 days (1500 trials each).
 [x0,y0] = sample_lds(A, C, Q, R, initx, T); % simulate the plant
 y=y0-0.5; % perturb the plant by 50%.
-isObserved=ones(size(y)); % Set the observability (isObserved) to be 1 for the 'day' and 0 for 'night'. Set each day/night to be 1500 timesteps each. 
+isObserved=ones(size(y)); % Set the observability (isObserved) to be 1 for the 'day' and 0 for 'night'. Set each day/night to be 1500 timesteps each.
 for i=0:5
     isObserved((i*3000)+1:(i*3000)+1500)=0;
 end

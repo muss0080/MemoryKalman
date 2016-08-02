@@ -3,21 +3,20 @@
 
 % Let's start with something simple. Using the example from:
 % http://bilgin.esme.org/BitsAndBytes/KalmanFilterforDummies
-% let's start with assuming 1 hidden state, transitions are x_t = 2 * x_t-1.
 
-A = 2;
+% Simple example - constant function with more sensory noise than noise in
+% state model.
+
+A = 1;
 C = 1;
-Q = 1;
+Q = (0.01).^2;
 R = (0.1).^2;
-initx = 0;
+initx = 4;
 initV = 1e-6;
 
-T = 10;
-
-for i = 1:
-  y0(i) = 1;
-end
+T = 40;
 
 [x0,y0] = sample_lds(A, C, Q, R, initx, T);
 [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y0, A, C, Q, R, initx, initV);
-initV=Vfilt(:,:,end);
+
+plot(1:T, x0,'r', 1:T, y0,'g', 1:T, xfilt,'b');

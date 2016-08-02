@@ -11,9 +11,9 @@ First read through the original paper (Kording, Tenembaum, and Shadmehr 2007), t
 
 When producing motor commands, errors occur due to a wide array of disturbances such as fatigue, damage, or development. All of these disturbances occur at different timescales, and require different adaptations. Problems at a shorter timescale should be forgotten, while longer ones should be kept around.
 
-First fix the kalman_update.m with the kalman update equations. Work through the simple example from the test_kalman.m file with your now working kalman filter.
+You will work through and remake the main figures from the paper above. First fix the kalman_update.m with the kalman update equations. Run the simple example from the test_kalman.m file with your now working kalman filter.
 
-Then go to the KTS.m file and reproduce the figures from the original paper, specifically figures 2b,c and 3c,g,h
+Then go to the KTS.m file and reproduce the figures from the original paper, specifically figures 2b,c and 3c,g,h.
 
 If you have finished all that, try writing up new code to replicate the contrast adaptation and word learning examples.
 
