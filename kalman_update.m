@@ -65,23 +65,18 @@ end
 
 %% Update step
 % compute innovation (error) e:
-e = y - C*xpred; % error (innovation)
-% compute
-n = length(e);
-ss = length(A);
+e =
 % compute innovation covariance S
-S = C*Vpred*C' + R;
-Sinv = inv(S);
-ss = length(V);
+S =
 % Compute log likelihood
 loglik = gaussian_prob(e, zeros(1,length(e)), S, 1);
-% Compute the Kalman gain matrix K
-K = Vpred*C'*Sinv; % Kalman gain matrix
+% Compute the optimal Kalman gain matrix K
+K =
 
 % Update a posteriori state estimate xnew
-xnew = xpred + K*e;
+xnew =
 % Update a posteriori covariance estimate Vnew
-Vnew = (eye(ss) - K*C)*Vpred;
+Vnew =
 
 % Update covariance change VVnew (see above).
-VVnew = (eye(ss) - K*C)*A*V;
+VVnew = 

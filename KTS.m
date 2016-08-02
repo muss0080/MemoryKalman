@@ -5,22 +5,26 @@
 %% Joint parameters - initialize transition and observation matrices across all examples.
 % Construct these matrices
 states=30; %how many hidden states to use - we want 30 here
-taus=exp(-linspace(log(0.000003),log(0.5),states)); %calculate the timescales -
-A=diag(1-1./taus); % the transition matrix A - diagnal matrix using equation (1) (matrix M from appendix)
-C = ones(1,states); % the observation matrix C - matrix H from appendix.
-Q = diag(1./taus); % the state noise matrix Q - matrix Q from appendix
+taus=exp(-linspace(log(0.000003),log(0.5),states)); %calculate the timescales for the states.
+
+A =  % the transition matrix A - diagnal matrix using equation (1) (matrix M from appendix)
+C =  % the observation matrix C - matrix H from appendix.
+Q =  % the state noise matrix Q - matrix Q from appendix
+
 Q=0.000001475*Q/sum(Q(:)); % this trick with normalizing makes it easier
                          % to experiment with other power laws for Q
                          % This way c=0.001 but its easy to play with the
                          % parameters
-R = (0.05).^2; % the observation noise R - sigma_w^2 from appendix
+
+R =  % the observation noise R - sigma_w^2 from appendix
+
 initx = zeros(states,1); %system starts out in unperturbed state
 initV = diag(1e-6*ones(states,1)); %% rough estimate of variance
 
 % Note that there are 30 memory states (30 'disturbances'), which will produce the error. The gain is implicit - error is always
 % assumed to be around 0 (i.e. errors are addative). So we're not solving a multiplicative gain, but an addative offset.
 
-% Trying to find the states that when summed equal the error, so thats why C is ones
+% We are trying to find the states that when summed equal the error.
 % ypred = C*xpred, which can be compared to any y
 
 %% Improve estimate of initV
@@ -47,16 +51,19 @@ Then at trial 1400, the target stops moving, and the subject adapts back to the 
 T = 4200; % Timescale of experiment, ie number of trials.
 % INSERT CODE
 % Simulate the unperturbed plan using sample_lds, and then purturb it:
-[x0,y] = sample_lds(A, C, Q, R, initx, T); % simulate an unperturbed plant
-y(1201:2600)=y(1201:2600)-0.3; % external perturbation on y - from 1200 to 2600, produce a 30% disturbance
-% Then run the filtration on it, producing xpred to be used below (graphing).
+[x0,y0] = sample_lds(A, C, Q, R, initx, T);
+
+% external perturbation on y - from 1200 to 2600, produce a 30% disturbance
+y(1201:2600)=y(1201:2600)-0.3;
+
+% Then run the filtration on it, producing xpred to be used below.
 [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
-% HERE
+
 a=sum(xpred(:,1001:end)); % first 1000 trials are just to ensure initV doesnt matter much
 % We weigh all the hidden states equally, so just sum across all of them
 % to get the resulting gain, and then subtract the observations and reverse
 % the external perturbation.
-b=a-y(1001:end); % Subjectract the gain y from the predicted values x.
+b=a-y0(1001:end); % Subjectract the gain y from the predicted values x.
 b(201:1600)=b(201:1600)-0.3; %transform back because we want to plot the actual gain
 
 
@@ -95,35 +102,37 @@ indicating that some memory remains of the previous positive perturbation.
 %}
 
 T=4200;
-for i=1:5
+for i=1:5 % We do this 5 times, just to get some good estimates we later plot.
     % INSERT CODE
-    % First, simulate the full trial sets:
-    [x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
+    % First, simulate the plant
+
     % Then produce positive perturbation from 1001 till 1800, and then negative perturbation till the end.
-    y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
-    y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
+    % positive perturbation (of 35%)
+
+    % negative perturbation until gain=1 (of -35%)
+
     % Then run the Kalman filter on this perturbation.
-    [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
-    % HERE
-    % Now, figure out when the gain goes back to normal.
+
     nG=find(sum(xpred)<sum(xpred(:,1001)));
-    bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
+    % Now, figure out when the gain nG goes back to normal:
+    bord ; % Replace with equation...
     % And then produce the positive perturbation again starting at that point - remember the negative perturbation.
-    y(bord:end)=y(bord:end)+0.7; %switch back to positive
+    % switch back to positive - account for the initial negative.
+
     % Now run the kalman filter again...
-    [xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
+
     % And produce a linear fit on the first and second positive perturbation.
-    [parasF]=fitLinear([1:200],sum(xpred(:,1001:1200))-y(1001:1200));
-    [parasS]=fitLinear([1:200],sum(xpred(:,bord:bord+199))-y(bord:bord+199));
-    first(i)=parasF(2);
+    [parasF]=fitLinear([1:200],sum(xpred(:,1001:1200))-y0(1001:1200));
+    [parasS]=fitLinear([1:200],sum(xpred(:,bord:bord+199))-y0(bord:bord+199));
+    first(i)=parasF(2); % Save these fits for plotting.
     second(i)=parasS(2);
 end
 
-%% Produces figure 3c - need xpred = state predicted and y = observation
+%% Produces figure 3c - need xpred = state predicted and y0 = observation
 figure(2);
 subplot(2,1,1);
 a=sum(xpred(:,801:end));
-b=a-y(801:end);
+b=a-y0(801:end);
 b(201:1000)=b(201:1000)+0.35; % remove perturbation to report standard gains
 b(1001:bord-800)=b(1001:bord-800)-0.35;
 b(bord-800:end)=b(bord-800:end)+0.35;
@@ -152,23 +161,29 @@ Here we have a period with no information - after the gain resets following a re
 the subject is blinded (so no information) and then a positive perturbation is produced.
 Note that the subject ?lost? some of the recent negative adaptation and showed spontaneous recovery
 (in the original graph).
-
 %}
 T=4200;
 % INSERT CODE
-[x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
-y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
-y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
-[xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV);
+% Simulate the unperturbed plant:
+
+% Produce positive perturbation:
+
+% negative perturbation until gain=1
+
+% Run a Kalman Filter:
+
+
 nG=find(sum(xpred)<sum(xpred(:,1001)));
-bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal
-y(bord:end)=y(bord:end)+0.7; %switch back to positive
-% Now run the kalman filter, but set the isObserved to zero for the dark periods.
+%figure out when the gain is back to normal
+
+y0(bord:end)=y0(bord:end)+0.7; %switch back to positive
+% Now run the kalman filter, but set the isObserved to zero for the dark periods (check kalman_filter.m)
 % The monkey has no observations for this time period, after the gain comes back to 0 for 500 time points.
 % We use a time of 500 to represent 'darkness'
-[xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,500),ones(1,10000)]);
+
+% Sum all the hidden states and convert back:
 a=sum(xpred);
-b=y-a;
+b=y0-a;
 b(1001:1800)=b(1001:1800)-0.35;
 b(1801:bord)=b(1801:bord)+0.35;
 b(bord+1:end)=b(bord+1:end)-0.35;
@@ -199,14 +214,17 @@ Note here that there is no spontaneous recovery.
 %}
 
 T=4200;
-[x0,y] = sample_lds(A, C, Q, R, initx, T); %simulate the plant
-y(1001:1800)=y(1001:1800)+0.35; % positive perturbation
-y(1801:end)=y(1801:end)-0.35; % negative perturbation until gain=1
-[xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV); % Run kalman filter
+
+% simulate the plant
+% positive perturbation of 35%
+% negative perturbation of 35% until gain=1
+% Run kalman filter
+
 nG=find(sum(xpred)<sum(xpred(:,1001)));
-bord=min(nG(find(nG>1800)))+1; %figure out when the gain is back to normal (gain = 1)
-y(bord:end)=y(bord:end)+0.35; %switch perturbation to 0.
-[xfilt, Vfilt, VVfilt, loglik,xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',[ones(1,bord),zeros(1,500),ones(1,10000)]);
+% figure out when the gain is back to normal (gain = 1)
+% switch perturbation to 0 after that point
+% Run the kalman filter, with unobserved 'darkness' after the 0 point and for 500.
+
 a=sum(xpred); % Average across all hidden states to find the adaptation gain
 b=y-a; % Subtract the resulting averaged gain again from the evidence, and revert the perturbations back to 0.
 b(1001:1800)=b(1001:1800)-0.35;
@@ -233,20 +251,22 @@ title('inferred disturbances for all timescales');
 %{
 In these experiments, subjects went through the adaptation training (with an offset of 50%) over multiple days,
 each day having 1500 trials and being blindfolded for the rest of the time.
-Note that on each day subject?s rates of learning is faster, till finally they almost achieve instant adaptation.
+Note that on each day subject's rates of learning is faster, till finally they almost achieve instant adaptation.
 %}
 T = 5*3000; % Produce adaptations for 5 days (1500 trials each).
-[x0,y0] = sample_lds(A, C, Q, R, initx, T); % simulate the plant
-y=y0-0.5; % perturb the plant by 50%.
-isObserved=ones(size(y)); % Set the observability (isObserved) to be 1 for the 'day' and 0 for 'night'. Set each day/night to be 1500 timesteps each.
-for i=0:5
-    isObserved((i*3000)+1:(i*3000)+1500)=0;
-end
+
+% Simulate the plant
+
+% Perturb the plant by 50%
+
+
+% Set the observability (isObserved) to be 1 for the 'day' and 0 for 'night'.
+% Set each day/night to be 1500 timesteps each.
+
 % Run the kalman filter once more!
-[xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y, A, C, Q, R, initx, initV,'isObserved',isObserved);
 
 % Now subtract the observations from the summed predictions, accounting for
-% the perturbations. Let this be variable r.
+% the perturbations.
 r=sum(xpred)-y;
 r=r-0.5;
 

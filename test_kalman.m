@@ -1,22 +1,28 @@
 % The purpose of this script is to test the kalman_update.m code after it has been
 % fixed.
 
-% Let's start with something simple. Using the example from:
-% http://bilgin.esme.org/BitsAndBytes/KalmanFilterforDummies
+% Let's start with a simple example - here we are tracking a constant (unchanging)
+% 1 dimensional state, but with observation noise. Below are the state model and
+% observation models below. kalman_filter runs many steps of kalman_update over
+% all the timesteps.
 
 % Simple example - constant function with more sensory noise than noise in
 % state model.
 
-A = 1;
-C = 1;
-Q = (0.01).^2;
-R = (0.1).^2;
-initx = 4;
-initV = 1e-6;
+A = 1; % the transition matrix A
+C = 1;% the observation matrix C
+Q = (0.01).^2; % the state noise matrix Q
+R = (0.1).^2; % the observation noise R
+initx = 4; % Initial value of the state
+initV = 1e-6; % Initial estimate of the variance.
 
-T = 40;
+T = 40; % Number of timesteps we have.
 
+% sample_lds simulates a stochastic linear dynamics sytem,
+% producing a sequence of states x0 and observations y0 given the information above.
 [x0,y0] = sample_lds(A, C, Q, R, initx, T);
+% the kalman_filter now runs through the evidence y0 to estimate the states, xpred
 [xfilt, Vfilt, VVfilt, loglik, xpred] = kalman_filter(y0, A, C, Q, R, initx, initV);
 
-plot(1:T, x0,'r', 1:T, y0,'g', 1:T, xfilt,'b');
+% Plot them to see how well we estimate the actual state.
+plot(1:T, x0,'r', 1:T, y0,'g', 1:T, xpred,'b');
