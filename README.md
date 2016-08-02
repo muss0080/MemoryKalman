@@ -2,16 +2,15 @@
 
 Modified code from [Kording, Tenembaum, and Shadmehr 2007 supplemental information](http://www.nature.com/neuro/journal/v10/n6/suppinfo/nn1901_S1.html).
 
-Created for COSMO 2016 tutorials.
+Created for COSMO 2016 day 3 tutorials.
 
 ## Instructions
 
-The code here has been edited from the original with some added comments and some key sections removed.
-First read through the original paper (Kording, Tenembaum, and Shadmehr 2007), to get an understanding of what you're doing. Then download the code and try to replicate the eye movement simulation figures.
+When producing motor commands, errors occur due to a wide array of disturbances such as fatigue, damage, or development. All of these disturbances occur at different timescales, and require different adaptations. Problems at a shorter timescale should be forgotten, while longer ones should be kept around. We will apply a Kalman filter to understand this credit assignment problem - given motor error what disturbances are responsible, and how should an optimal agent adapt.
 
-When producing motor commands, errors occur due to a wide array of disturbances such as fatigue, damage, or development. All of these disturbances occur at different timescales, and require different adaptations. Problems at a shorter timescale should be forgotten, while longer ones should be kept around.
+First read through the paper Kording, Tenembaum, and Shadmehr 2007, to get an understanding of what you are doing. Then download the code and replicate the eye movement simulation figures. The code here has been edited from the original with some added comments and some key sections removed.
 
-You will work through and remake the main figures from the paper above. First fix the kalman_update.m with the kalman update equations. Run the simple example from the test_kalman.m file with your now working kalman filter.
+First fix the kalman_update.m with the kalman update equations. Run the simple example from the test_kalman.m file with your now working kalman filter.
 
 Then go to the KTS.m file and reproduce the figures from the original paper, specifically figures 2b,c and 3c,g,h.
 
@@ -19,7 +18,7 @@ If you have finished all that, try writing up new code to replicate the contrast
 
 ## Notes
 
-In the kalman_update file I have removed the control component, u. This is important for the full Kalman Filter, but not for our use so can be ignored. There are some other bits that are stripped down or hopefully simplified.
+In the kalman_update.m file I have removed the control component, u. This is important for the full Kalman Filter, but not for our use so can be ignored (helps clean up the code). There are some other bits that are stripped down or hopefully simplified.
 
 Since this is modified from the original code linked above, you could download the original and look at the solutions.
 
@@ -46,7 +45,7 @@ Since this is modified from the original code linked above, you could download t
 These files have been run on MATLAB 2013a, but should work with any version.
 
 ##### Notation
-Apologies about everything ever - some very smart people think that changing the notation for terms is unimportant, but for those learning it can be a huge wall. For my own sanity, I've made the (hopefully correct) table below to translate the important matrices from the Kalman update [wikipedia page](https://en.wikipedia.org/wiki/Kalman_filter), the paper Kording, Tenembaum, and Shadmehr 2007, and their accompanying code.
+Apologies about everything ever - there is no standard notation for the Kalman Filter so there are translation issues that for those learning can be a huge wall. For my own sanity, I've made the (hopefully correct) table below to translate the important matrices from the Kalman update [wikipedia page](https://en.wikipedia.org/wiki/Kalman_filter), the paper (Kording, Tenembaum, & Shadmehr 2007), and the accompanying code. Check before trusting this completely.
 
 Term | Wiki | Paper | Code
 --- | --- | --- | ---
