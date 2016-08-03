@@ -8,6 +8,7 @@
 
 % Simple example - constant transfer function with more sensory noise than noise in
 % state model.
+% To hopefully provide some intuition:
 % Imagine that you are playing a rhythm game, and have to tap out a rhythm
 % that you hear using some poor quality headphones. The rhythm is constant (with some noise),
 % and there is observation noise due to the headphones. Below is a simple model, along with a plot
