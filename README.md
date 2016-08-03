@@ -29,8 +29,6 @@ Example using sample_lds and kalman_filter, with a constant state transition mod
 **Figure 2b**:
 In these experiments, subjects had to make a 10 degree saccade (to a particular target),
 but then (after 200 ‘practice’ trials) the target moves during the saccade.
-Since saccades are too short to be able to use the feedback to adjust mid-saccade,
-the subject can only adjust the gain on a trail by trial basis.
 The subject eventually adapts by reducing the gain on the saccade (for an overshot).
 Then at trial 1400, the target stops moving, and the subject adapts back to the original location.
 ![2b](/figures/2b.png)
