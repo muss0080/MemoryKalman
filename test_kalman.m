@@ -6,8 +6,12 @@
 % observation models below. kalman_filter runs many steps of kalman_update over
 % all the timesteps.
 
-% Simple example - constant function with more sensory noise than noise in
+% Simple example - constant transfer function with more sensory noise than noise in
 % state model.
+% Imagine that you are playing a rhythm game, and have to tap out a rhythm
+% that you hear using some poor quality headphones. The rhythm is constant (with some noise),
+% and there is observation noise due to the headphones. Below is a simple model, along with a plot
+% showing the true beat (x0), the observation (y0) and the predicted beat (xpred).
 
 A = 1; % the transition matrix A
 C = 1;% the observation matrix C
