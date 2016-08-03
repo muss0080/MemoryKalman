@@ -16,7 +16,7 @@ Next go to the KTS.m file and reproduce the figures from the original paper, spe
 
 Initially you will have to define the transition and observation matrices from the paper in KTS.m (which are the same matrices for all experimental conditions and figures), and then you can run the code to generate figure 2b. Once you understand how figure 2b is generated, move on to filling in the code to simulate the experiments for the other figures.
 
-If you finish all that, try writing up new code to replicate the contrast adaptation and word learning examples.
+If you finish all that, play with the basic model and see how it changes the results. For example, what happens if you have far fewer memory states? Try writing up new code to replicate the contrast adaptation and word learning examples.
 
 ## Figures
 
@@ -48,8 +48,7 @@ indicating that some memory remains of the previous positive perturbation.
 **Figure 3g**:
 Here we have a period with no information - after the gain resets following a reversal,
 the subject is blinded (so no information) and then a positive perturbation is produced.
-Note that the subject ?lost? some of the recent negative adaptation and showed spontaneous recovery
-(in the original graph).
+Note that the subject 'lost' some of the recent negative adaptation and showed spontaneous recovery.
 ![3g](/figures/3g.png)
 
 **Figure 3h**:
