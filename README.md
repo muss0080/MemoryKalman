@@ -8,13 +8,15 @@ Created for COSMO 2016 day 3 tutorials.
 
 When producing motor commands, errors occur due to a wide array of disturbances such as fatigue, damage, or development. All of these disturbances occur at different timescales, and require different adaptations. Problems at a shorter timescale should be forgotten, while longer ones should be kept around. We will apply a Kalman filter to understand this credit assignment problem - given motor error what disturbances are responsible, and how should an optimal agent adapt.
 
-First read through the paper Kording, Tenembaum, and Shadmehr 2007, to get an understanding of what you are doing. Then download the code and replicate the eye movement simulation figures. The code here has been edited from the original with some added comments and some key sections removed.
+First read through the paper [Kording, Tenembaum, and Shadmehr 2007](http://t.shadmehrlab.org/Reprints/NatNeuro07.pdf), to get an understanding of what you are doing. Then download the code and replicate the eye movement simulation figures. The code here has been edited from the original with some added comments and some key sections removed.
 
-First fix the kalman_update.m with the kalman update equations. Run the simple example from the test_kalman.m file with your now working kalman filter.
+First fix the kalman_update.m with the Kalman update equations. Run the simple example from the test_kalman.m file with your now working Kalman filter to see how it works.
 
-Then go to the KTS.m file and reproduce the figures from the original paper, specifically figures 2b,c and 3c,g,h. Each of these problems are similar in format, but require slightly different solutions.
+Next go to the KTS.m file and reproduce the figures from the original paper, specifically figures 2b,c and 3c,g,h (the Bayesian occulomotor simulations). Each of these are similar in structure, but require slightly different solutions.
 
-If you have finished all that, try writing up new code to replicate the contrast adaptation and word learning examples.
+Initially you will have to define the transition and observation matrices from the paper in KTS.m (which are the same matrices for all experimental conditions and figures), and then you can run the code to generate figure 2b. Once you understand how figure 2b is generated, move on to filling in the code to simulate the experiments for the other figures.
+
+If you finish all that, try writing up new code to replicate the contrast adaptation and word learning examples.
 
 ## Figures
 
